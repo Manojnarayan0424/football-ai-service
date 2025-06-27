@@ -1,0 +1,9 @@
+opencv-python
+tensorflow
+torch
+ftfy
+regex
+tqdm
+Pillow
+clip @ git+https://github.com/openai/CLIP.git
+

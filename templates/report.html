@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Player Performance Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #2e86de;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+        }
+        th {
+            background-color: #2e86de;
+            color: white;
+        }
+        img {
+            margin-top: 2rem;
+            max-width: 100%;
+            border: 1px solid #ccc;
+        }
+        .summary {
+            margin-top: 2rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚽ Player Performance Report - Drill {{ rows[0]["drill_id"] if rows else "N/A" }}</h1>
+
+    <div class="summary">
+        <p><strong>Total Frames:</strong> {{ total }}</p>
+        <p><strong>Coach Avg Accuracy:</strong> {{ coach_avg }}%</p>
+        <p><strong>Student Avg Accuracy:</strong> {{ student_avg }}%</p>
+        <p><strong>Pose Similarity Avg:</strong> {{ sim_avg }}</p>
+    </div>
+
+    <table>
+        <tr>
+            <th>Frame</th>
+            <th>Coach Acc</th>
+            <th>Student Acc</th>
+            <th>Pose Sim</th>
+            <th>Ball1</th>
+            <th>Ball2</th>
+            <th>CLIP Label</th>
+            <th>CLIP Sim</th>
+        </tr>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row["frame_num"] }}</td>
+            <td>{{ row["coach_acc"] }}</td>
+            <td>{{ row["student_acc"] }}</td>
+            <td>{{ row["pose_sim"] }}</td>
+            <td>{{ row["ball1"] }}</td>
+            <td>{{ row["ball2"] }}</td>
+            <td>{{ row["clip_label"] }}</td>
+            <td>{{ row["clip_sim"] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>📊 Visual Analytics</h2>
+    <img src="/static/pose_accuracy_hist.png" alt="Pose Accuracy Over Time">
+    <img src="/static/pose_accuracy_confusion.png" alt="Semantic Action Mismatches">
+    <img src="/static/benchmark_plot.png" alt="CLIP Similarity Over Time">
+</body>
+</html>
