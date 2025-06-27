@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+.DS_Store
+*.log
+videos/
+results/
+outputs/
+models/
+*.tflite
+
