@@ -88,13 +88,6 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## 📸 Screenshots
-
-You can upload Swagger screenshots here or add these lines:
-
-```
-![Swagger UI](screenshots/swagger-ui.png)
-```
 
 ---
 
@@ -105,7 +98,7 @@ You can upload Swagger screenshots here or add these lines:
 * TensorFlow Lite (MoveNet)
 * CLIP (ViT-B/32)
 * PostgreSQL
-* SendGrid (for OTP)
+
 
 ---
 
