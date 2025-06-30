@@ -8,8 +8,7 @@ from services.clip_service import CLIPService
 from services.ball_tracker import BallTracker
 from utils.benchmark_logger import BenchmarkLogger
 
-
-# Inside movenet_service.py or wherever the model is loaded:
+# ✅ Initialize services
 movenet = MoveNetService("models/movenet_thunder_int8.tflite")
 clip = CLIPService()
 ball_tracker = BallTracker()
@@ -29,19 +28,19 @@ def process_drill(drill_id, coach_path, student_path):
             break
 
         # ✅ Detect keypoints
-        coach_kps = movenet.detect_keypoints(frame1)
-        student_kps = movenet.detect_keypoints(frame2)
+        coach_kps = movenet.detect(frame1)
+        student_kps = movenet.detect(frame2)
 
         # ✅ Draw keypoints
         frame1 = draw_keypoints(frame1, coach_kps)
         frame2 = draw_keypoints(frame2, student_kps)
 
-        # ✅ Pose similarity (simple Euclidean)
-        pose_sim = np.linalg.norm(np.array(coach_kps) - np.array(student_kps))
+        # ✅ Pose similarity
+        pose_sim = movenet.compare_keypoints(coach_kps, student_kps)
 
-        # ✅ Ball tracking
-        ball1 = ball_tracker.track(frame1)
-        ball2 = ball_tracker.track(frame2)
+        # ✅ Ball tracking (fixed)
+        frame1, ball1 = ball_tracker.track_ball(frame1)
+        frame2, ball2 = ball_tracker.track_ball(frame2)
 
         # ✅ CLIP semantic similarity
         label1, label2, clip_sim = clip.compare_frames(frame1, frame2)
@@ -54,7 +53,7 @@ def process_drill(drill_id, coach_path, student_path):
     cap1.release()
     cap2.release()
 
-    # ✅ Save overlay video
+    # ✅ Save outputs
     logger.save_overlay_video()
     logger.save_to_csv()
     logger.save_summary_charts()

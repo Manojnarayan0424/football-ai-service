@@ -27,13 +27,11 @@ class VideoService:
     def release(self):
         self.cap.release()
 
-
-# ✅ Draw keypoints on a frame
+# ✅ Draw keypoints on frame with labels (expects dict format)
 def draw_keypoints(frame, keypoints, threshold=0.3):
-    h, w, _ = frame.shape
-    for kp in keypoints:
-        y, x, confidence = kp
+    for part_name, (x, y, confidence) in keypoints.items():
         if confidence > threshold:
-            cx, cy = int(x * w), int(y * h)
-            cv2.circle(frame, (cx, cy), 5, (0, 255, 0), -1)
+            cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
+            cv2.putText(frame, part_name, (x + 5, y - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
     return frame

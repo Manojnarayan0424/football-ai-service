@@ -1,3 +1,4 @@
+# ball_tracker.py
 import cv2
 import numpy as np
 
@@ -33,7 +34,7 @@ class BallTracker:
                 if draw:
                     cv2.circle(frame, (x, y), r, (0, 255, 255), 2)
                     cv2.putText(frame, "Ball", (x + 10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-                break  # only use first ball
+                break
 
         if debug:
             cv2.imshow("Ball Detection Debug", blurred)
