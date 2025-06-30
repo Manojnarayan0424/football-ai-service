@@ -4,11 +4,11 @@ import cv2
 import matplotlib.pyplot as plt
 import pandas as pd
 
+
 class BenchmarkLogger:
-    def __init__(self, drill_id):
+    def __init__(self, drill_id: str):
         self.drill_id = drill_id
         self.rows = []
-        self.overlay_writer = None
         self.overlay_path = f"results/overlay_drill_{drill_id}.mp4"
         os.makedirs("results", exist_ok=True)
 
@@ -25,31 +25,35 @@ class BenchmarkLogger:
             "ball1": str(ball1),
             "ball2": str(ball2),
             "clip_label": f"{label1} vs {label2}",
-            "clip_sim": clip_sim
+            "clip_sim": round(clip_sim * 100, 2)
         })
 
     def _calculate_accuracy(self, keypoints, threshold=0.3):
-        if not keypoints:
+        if not keypoints or not isinstance(keypoints, list):
             return 0.0
-        visible = [kp for kp in keypoints if kp[2] > threshold]
+        visible = [kp for kp in keypoints if len(kp) > 2 and kp[2] > threshold]
         return round(len(visible) / len(keypoints) * 100, 2)
+
+    def _csv_path(self):
+        return f"results/log_drill_{self.drill_id}.csv"
 
     def save_to_csv(self):
         if not self.rows:
             print("⚠️ No data to save.")
             return
+
         csv_path = self._csv_path()
         keys = self.rows[0].keys()
         with open(csv_path, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=keys)
             writer.writeheader()
             writer.writerows(self.rows)
+
         print(f"✅ CSV saved: {csv_path}")
 
     def save_overlay_video(self):
         csv_path = self._csv_path()
         if not os.path.exists(csv_path):
-            # Auto-save CSV if not already done
             print("ℹ️ CSV not found. Attempting to save it first...")
             self.save_to_csv()
             if not os.path.exists(csv_path):
@@ -58,7 +62,7 @@ class BenchmarkLogger:
 
         df = pd.read_csv(csv_path)
 
-        # Construct video path using drill number
+        # Extract video path
         drill_num = self.drill_id.split()[-1]
         video_path = f"videos/student_drill{drill_num}.MP4"
         if not os.path.exists(video_path):
@@ -112,7 +116,7 @@ class BenchmarkLogger:
         plt.savefig("results/pose_accuracy_hist.png")
         plt.close()
 
-        # Confusion chart
+        # Action mismatch chart
         plt.figure()
         label_diffs = df["clip_label"].apply(lambda x: x.split(" vs "))
         mismatch = [1 if a != b else 0 for a, b in label_diffs]
@@ -123,16 +127,14 @@ class BenchmarkLogger:
         plt.savefig("results/pose_accuracy_confusion.png")
         plt.close()
 
-        # CLIP similarity
+        # CLIP similarity chart
         plt.figure()
-        plt.plot(df["frame_num"], df["clip_sim"], label="CLIP Similarity")
+        plt.plot(df["frame_num"], df["clip_sim"], label="CLIP Similarity (%)")
         plt.xlabel("Frame")
-        plt.ylabel("Cosine Similarity")
+        plt.ylabel("Similarity")
         plt.title("CLIP Semantic Similarity Over Time")
         plt.savefig("results/benchmark_plot.png")
         plt.close()
 
         print("📊 Charts saved in 'results/'.")
 
-    def _csv_path(self):
-        return f"results/log_drill_{self.drill_id}.csv"

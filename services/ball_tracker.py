@@ -10,7 +10,7 @@ class BallTracker:
         self.min_radius = 5
         self.max_radius = 60
 
-    def track(self, frame, debug=False):
+    def track_ball(self, frame, draw=True, debug=False):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (9, 9), 2)
 
@@ -30,11 +30,13 @@ class BallTracker:
             circles = np.round(circles[0, :]).astype("int")
             for (x, y, r) in circles:
                 ball_position = (x, y)
-                # Optional drawing inside processing pipeline
-                break
+                if draw:
+                    cv2.circle(frame, (x, y), r, (0, 255, 255), 2)
+                    cv2.putText(frame, "Ball", (x + 10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                break  # only use first ball
 
         if debug:
             cv2.imshow("Ball Detection Debug", blurred)
             cv2.waitKey(1)
 
-        return ball_position
+        return frame, ball_position

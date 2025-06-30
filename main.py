@@ -7,9 +7,8 @@ from utils.benchmark_logger import BenchmarkLogger
 from utils.db import DBLogger
 
 # ✅ Initialize services
-pose = MoveNetService()
+pose = MoveNetService("models/movenet_thunder_int8.tflite")
 clip_service = CLIPService()
-benchmark = BenchmarkLogger()
 db_logger = DBLogger()
 ball_tracker = BallTracker()
 
@@ -18,12 +17,16 @@ video_dir = "videos"
 drill_count = 3
 player_id = "player_101"  # You can make this dynamic later
 
+# ✅ Accuracy helper
 def pose_accuracy(keypoints):
-    return sum(1 for k in keypoints if k[2] > 0.3) / len(keypoints) * 100
+    visible = [1 for kp in keypoints.values() if kp[2] > 0.3]
+    return round(len(visible) / len(keypoints) * 100, 2)
 
 # ✅ Loop through drills
 for idx in range(drill_count):
     drill_id = f"Drill {idx + 1}"
+    benchmark = BenchmarkLogger(drill_id)
+
     coach_path = os.path.join(video_dir, f"coach_drill{idx + 1}.MP4")
     student_path = os.path.join(video_dir, f"student_drill{idx + 1}.MP4")
 
@@ -55,6 +58,10 @@ for idx in range(drill_count):
         frame1, ball1 = ball_tracker.track_ball(frame1)
         frame2, ball2 = ball_tracker.track_ball(frame2)
 
+        # ✅ Draw keypoints
+        pose.draw_keypoints(frame1, coach_kpts)
+        pose.draw_keypoints(frame2, student_kpts)
+
         # ✅ CLIP similarity
         label1, sim1 = clip_service.compare_frame_to_prompts(
             frame1, ["dribble", "kick", "run", "stand"]
@@ -72,15 +79,15 @@ for idx in range(drill_count):
 
         # ✅ CSV + DB Logging
         benchmark.log(
-            drill_id=drill_id,
             frame_num=frame_count,
-            coach_acc=acc1,
-            student_acc=acc2,
-            clip_label=label1,
-            clip_sim=sim1_score * 100,
+            coach_kps=coach_kpts,
+            student_kps=student_kpts,
             pose_sim=pose_sim,
             ball1=ball1,
-            ball2=ball2
+            ball2=ball2,
+            label1=label1,
+            label2=label1,
+            clip_sim=sim1_score * 100
         )
 
         db_logger.insert_performance(
@@ -129,13 +136,10 @@ for idx in range(drill_count):
     else:
         print(f"❌ Skipped insert for {drill_id} due to missing data.")
 
-# ✅ Generate report visuals
-plot_paths = benchmark.plot_summary()
-
-print(f"\n✅ Benchmark CSV saved at: {benchmark.filepath}")
-print(f"📊 Accuracy Chart saved at: {plot_paths[0]}")
-print(f"📉 Histogram saved at: {plot_paths[1]}")
-print(f"📌 Confusion Matrix saved at: {plot_paths[2]}")
+    # ✅ Save CSV, overlay, and charts
+    benchmark.save_to_csv()
+    benchmark.save_overlay_video()
+    benchmark.save_summary_charts()
 
 # ✅ Clean up
 cv2.destroyAllWindows()
